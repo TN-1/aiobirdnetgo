@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 import logging
 import urllib.parse
 from base64 import b64encode
@@ -89,7 +90,14 @@ class BirdNetGoClient:
             if parsed.port:
                 port = parsed.port
 
-        self._host = clean_host.strip("[]").lower()
+        clean_host = clean_host.strip("[]")
+        try:
+            ip = ipaddress.ip_address(clean_host)
+            clean_host = ip.compressed
+        except ValueError:
+            clean_host = clean_host.lower()
+
+        self._host = clean_host
         self._port = port
         self._use_ssl = use_ssl
         self._base_path = base_path.rstrip("/")
@@ -156,7 +164,7 @@ class BirdNetGoClient:
         """Build standard request headers."""
         headers = {
             "Accept": "application/json",
-            "User-Agent": "aiobirdnetgo/0.1.4",
+            "User-Agent": "aiobirdnetgo/0.1.5",
         }
         if self._api_key:
             headers["Authorization"] = f"Bearer {self._api_key}"

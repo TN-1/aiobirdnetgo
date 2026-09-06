@@ -55,6 +55,11 @@ def test_client_init_properties() -> None:
     assert url_ipv6.port == 9000
     assert url_ipv6.base_url == "http://[2001:db8::1]:9000"
 
+    # Test expanded IPv6 canonicalization
+    expanded_ipv6 = BirdNetGoClient(host="2001:0db8:0000:0000:0000:0000:0000:0001", port=8080)
+    assert expanded_ipv6.host == "2001:db8::1"
+    assert expanded_ipv6.base_url == "http://[2001:db8::1]:8080"
+
     # Test Auth Headers
     api_key_client = BirdNetGoClient(host="localhost", api_key="secret-token")
     headers = api_key_client.get_headers()
