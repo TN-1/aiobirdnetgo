@@ -42,7 +42,7 @@ from .models import (
 )
 from .stream import AudioLevelStream, DetectionStream, SSEMessage
 
-__version__ = "0.1.0"
+__version__ = "0.1.2"
 
 __all__ = [
     "DEFAULT_PORT",

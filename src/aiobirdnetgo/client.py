@@ -91,7 +91,7 @@ class BirdNetGoClient:
             if parsed.path and parsed.path != "/":
                 base_path = parsed.path
 
-        self._host = clean_host
+        self._host = clean_host.lower()
         self._port = port
         self._use_ssl = use_ssl
         self._base_path = base_path.rstrip("/")
@@ -152,7 +152,7 @@ class BirdNetGoClient:
         """Build standard request headers."""
         headers = {
             "Accept": "application/json",
-            "User-Agent": "aiobirdnetgo/0.1.0",
+            "User-Agent": "aiobirdnetgo/0.1.2",
         }
         if self._api_key:
             headers["Authorization"] = f"Bearer {self._api_key}"
