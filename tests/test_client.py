@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
@@ -32,7 +33,13 @@ def test_client_init_properties() -> None:
     assert https_client.host == "birdnet.local"
     assert https_client.port == 8443
     assert https_client.use_ssl is True
-    assert https_client.base_url == "https://birdnet.local:8443/custom"
+    assert https_client.base_url == "https://birdnet.local:8443"
+
+    # Test explicit base_path
+    base_path_client = BirdNetGoClient(
+        host="birdnet.local", port=8443, use_ssl=True, base_path="/custom"
+    )
+    assert base_path_client.base_url == "https://birdnet.local:8443/custom"
 
     # Test Auth Headers
     api_key_client = BirdNetGoClient(host="localhost", api_key="secret-token")
@@ -49,8 +56,12 @@ async def test_ping(client: BirdNetGoClient) -> None:
     """Test ping() helper."""
     assert await client.ping() is True
 
-    raw_ping = await client.get_ping()
-    assert raw_ping.status == "ok"
+
+@pytest.mark.asyncio
+async def test_get_ping(client: BirdNetGoClient) -> None:
+    """Test get_ping()."""
+    resp = await client.get_ping()
+    assert resp.status == "ok"
 
 
 @pytest.mark.asyncio
@@ -71,6 +82,20 @@ async def test_get_kpis(client: BirdNetGoClient) -> None:
     assert kpis.today_detections == 138
     assert kpis.best_day.count == 420
     assert kpis.detection_streak.days == 17
+
+
+@pytest.mark.asyncio
+async def test_get_kpis_malformed(client: BirdNetGoClient) -> None:
+    """Test get_kpis() with malformed responses."""
+    # Missing required keys
+    with patch.object(client, "_request", return_value={"message": "ok"}):
+        with pytest.raises(BirdNetGoResponseError, match="Malformed KPI response"):
+            await client.get_kpis()
+
+    # Non-dictionary response
+    with patch.object(client, "_request", return_value=["not", "a", "dict"]):
+        with pytest.raises(BirdNetGoResponseError, match="Expected JSON object"):
+            await client.get_kpis()
 
 
 @pytest.mark.asyncio

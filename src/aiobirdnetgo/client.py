@@ -80,7 +80,7 @@ class BirdNetGoClient:
             username: Optional Basic Auth username.
             password: Optional Basic Auth password.
         """
-        # Clean host (strip scheme or trailing slashes if passed)
+        # Clean host (strip scheme, path, or trailing slashes if passed)
         clean_host = host.strip()
         if "://" in clean_host:
             parsed = urllib.parse.urlparse(clean_host)
@@ -88,8 +88,6 @@ class BirdNetGoClient:
             clean_host = parsed.hostname or clean_host
             if parsed.port:
                 port = parsed.port
-            if parsed.path and parsed.path != "/":
-                base_path = parsed.path
 
         self._host = clean_host.lower()
         self._port = port
@@ -152,7 +150,7 @@ class BirdNetGoClient:
         """Build standard request headers."""
         headers = {
             "Accept": "application/json",
-            "User-Agent": "aiobirdnetgo/0.1.2",
+            "User-Agent": "aiobirdnetgo/0.1.3",
         }
         if self._api_key:
             headers["Authorization"] = f"Bearer {self._api_key}"
@@ -245,7 +243,14 @@ class BirdNetGoClient:
     async def get_kpis(self) -> DashboardKPIs:
         """Get dashboard KPI headline statistics (today detections, streak, species count)."""
         data = await self._request("GET", ENDPOINT_KPIS)
-        return DashboardKPIs.from_dict(data if isinstance(data, dict) else {})
+        if not isinstance(data, dict):
+            raise BirdNetGoResponseError(
+                200, f"Expected JSON object for KPIs, got {type(data).__name__}"
+            )
+        try:
+            return DashboardKPIs.from_dict(data)
+        except (TypeError, ValueError) as err:
+            raise BirdNetGoResponseError(200, f"Malformed KPI response data: {err}") from err
 
     async def get_audio_sources(self, streams_only: bool = False) -> list[AudioSource]:
         """Get configured audio sources (microphones, RTSP streams)."""

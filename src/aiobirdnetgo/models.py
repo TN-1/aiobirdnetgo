@@ -103,6 +103,15 @@ class DashboardKPIs:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> DashboardKPIs:
         """Create DashboardKPIs from API dictionary."""
+        if not isinstance(data, dict):
+            raise TypeError(f"Expected dict, got {type(data).__name__}")
+
+        if not (
+            ("today_detections" in data or "todayDetections" in data)
+            and ("lifetime_species" in data or "lifetimeSpecies" in data)
+        ):
+            raise ValueError("Missing required fields for DashboardKPIs")
+
         best_day_data = data.get("bestDay", data.get("best_day", {}))
         streak_data = data.get("detectionStreak", data.get("detection_streak", {}))
 
