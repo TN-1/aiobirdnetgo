@@ -41,6 +41,20 @@ def test_client_init_properties() -> None:
     )
     assert base_path_client.base_url == "https://birdnet.local:8443/custom"
 
+    # Test IPv6 literal formatting
+    ipv6_client = BirdNetGoClient(host="2001:db8::1", port=8080)
+    assert ipv6_client.host == "2001:db8::1"
+    assert ipv6_client.base_url == "http://[2001:db8::1]:8080"
+
+    bracketed_ipv6 = BirdNetGoClient(host="[2001:db8::1]", port=8080)
+    assert bracketed_ipv6.host == "2001:db8::1"
+    assert bracketed_ipv6.base_url == "http://[2001:db8::1]:8080"
+
+    url_ipv6 = BirdNetGoClient(host="http://[2001:db8::1]:9000/foo")
+    assert url_ipv6.host == "2001:db8::1"
+    assert url_ipv6.port == 9000
+    assert url_ipv6.base_url == "http://[2001:db8::1]:9000"
+
     # Test Auth Headers
     api_key_client = BirdNetGoClient(host="localhost", api_key="secret-token")
     headers = api_key_client.get_headers()
@@ -88,14 +102,18 @@ async def test_get_kpis(client: BirdNetGoClient) -> None:
 async def test_get_kpis_malformed(client: BirdNetGoClient) -> None:
     """Test get_kpis() with malformed responses."""
     # Missing required keys
-    with patch.object(client, "_request", return_value={"message": "ok"}):
-        with pytest.raises(BirdNetGoResponseError, match="Malformed KPI response"):
-            await client.get_kpis()
+    with (
+        patch.object(client, "_request", return_value={"message": "ok"}),
+        pytest.raises(BirdNetGoResponseError, match="Malformed KPI response"),
+    ):
+        await client.get_kpis()
 
     # Non-dictionary response
-    with patch.object(client, "_request", return_value=["not", "a", "dict"]):
-        with pytest.raises(BirdNetGoResponseError, match="Expected JSON object"):
-            await client.get_kpis()
+    with (
+        patch.object(client, "_request", return_value=["not", "a", "dict"]),
+        pytest.raises(BirdNetGoResponseError, match="Expected JSON object"),
+    ):
+        await client.get_kpis()
 
 
 @pytest.mark.asyncio

@@ -69,9 +69,11 @@ class BestDayInfo:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> BestDayInfo:
         """Create BestDayInfo from API dictionary."""
+        if not isinstance(data, dict) or "count" not in data:
+            raise ValueError("BestDayInfo requires a dictionary containing 'count'")
         return cls(
             date=str(data.get("date", "")),
-            count=int(data.get("count", 0)),
+            count=int(data["count"]),
         )
 
 
@@ -85,8 +87,10 @@ class StreakInfo:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> StreakInfo:
         """Create StreakInfo from API dictionary."""
+        if not isinstance(data, dict) or "days" not in data:
+            raise ValueError("StreakInfo requires a dictionary containing 'days'")
         return cls(
-            days=int(data.get("days", 0)),
+            days=int(data["days"]),
             start_date=str(data.get("startDate", data.get("start_date", ""))),
         )
 
@@ -109,22 +113,25 @@ class DashboardKPIs:
         if not (
             ("today_detections" in data or "todayDetections" in data)
             and ("lifetime_species" in data or "lifetimeSpecies" in data)
+            and ("best_day" in data or "bestDay" in data)
+            and ("detection_streak" in data or "detectionStreak" in data)
         ):
-            raise ValueError("Missing required fields for DashboardKPIs")
+            msg = (
+                "Missing required fields for DashboardKPIs "
+                "(today_detections, lifetime_species, best_day, detection_streak)"
+            )
+            raise ValueError(msg)
 
-        best_day_data = data.get("bestDay", data.get("best_day", {}))
-        streak_data = data.get("detectionStreak", data.get("detection_streak", {}))
+        best_day_data = data.get("bestDay", data.get("best_day"))
+        streak_data = data.get("detectionStreak", data.get("detection_streak"))
 
-        best_day = (
-            BestDayInfo.from_dict(best_day_data)
-            if isinstance(best_day_data, dict)
-            else BestDayInfo.from_dict({})
-        )
-        detection_streak = (
-            StreakInfo.from_dict(streak_data)
-            if isinstance(streak_data, dict)
-            else StreakInfo.from_dict({})
-        )
+        if not isinstance(best_day_data, dict):
+            raise TypeError("Expected dict for best_day")
+        if not isinstance(streak_data, dict):
+            raise TypeError("Expected dict for detection_streak")
+
+        best_day = BestDayInfo.from_dict(best_day_data)
+        detection_streak = StreakInfo.from_dict(streak_data)
 
         return cls(
             lifetime_species=int(data.get("lifetimeSpecies", data.get("lifetime_species", 0))),

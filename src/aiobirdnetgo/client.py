@@ -80,7 +80,7 @@ class BirdNetGoClient:
             username: Optional Basic Auth username.
             password: Optional Basic Auth password.
         """
-        # Clean host (strip scheme, path, or trailing slashes if passed)
+        # Clean host (strip scheme, path, brackets, or trailing slashes if passed)
         clean_host = host.strip()
         if "://" in clean_host:
             parsed = urllib.parse.urlparse(clean_host)
@@ -89,7 +89,7 @@ class BirdNetGoClient:
             if parsed.port:
                 port = parsed.port
 
-        self._host = clean_host.lower()
+        self._host = clean_host.strip("[]").lower()
         self._port = port
         self._use_ssl = use_ssl
         self._base_path = base_path.rstrip("/")
@@ -100,8 +100,14 @@ class BirdNetGoClient:
         self._username = username
         self._password = password
 
+        # Format host for URL (wrap IPv6 literals in brackets)
+        url_host = (
+            f"[{self._host}]"
+            if ":" in self._host and not self._host.startswith("[")
+            else self._host
+        )
         scheme = "https" if self._use_ssl else "http"
-        self._base_url = f"{scheme}://{self._host}:{self._port}{self._base_path}"
+        self._base_url = f"{scheme}://{url_host}:{self._port}{self._base_path}"
 
     @property
     def host(self) -> str:
@@ -150,7 +156,7 @@ class BirdNetGoClient:
         """Build standard request headers."""
         headers = {
             "Accept": "application/json",
-            "User-Agent": "aiobirdnetgo/0.1.3",
+            "User-Agent": "aiobirdnetgo/0.1.4",
         }
         if self._api_key:
             headers["Authorization"] = f"Bearer {self._api_key}"
