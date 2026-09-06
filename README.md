@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
 ```bash
 # Clone the repository
-git clone https://github.com/tphakala/aiobirdnetgo.git
+git clone https://github.com/TN-1/aiobirdnetgo.git
 cd aiobirdnetgo
 
 # Install dependencies and dev tools

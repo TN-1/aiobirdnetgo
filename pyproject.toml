@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aiobirdnetgo"
-version = "0.1.0"
+version = "0.1.1"
 description = "Asynchronous Python client for the BirdNET-Go REST and SSE API"
 readme = "README.md"
 license = { text = "MIT" }
@@ -42,9 +42,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/tphakala/birdnet-go"
-Repository = "https://github.com/tphakala/aiobirdnetgo"
-"Bug Tracker" = "https://github.com/tphakala/aiobirdnetgo/issues"
+Homepage = "https://github.com/TN-1/aiobirdnetgo"
+Repository = "https://github.com/TN-1/aiobirdnetgo"
+"Bug Tracker" = "https://github.com/TN-1/aiobirdnetgo/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
